@@ -1,4 +1,11 @@
+import { useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { AppContext } from 'src/contexts/app.context'
+import { clearLS } from 'src/utils/auth'
+
 function Header() {
+	const navigate = useNavigate()
+	const { setIsAuthenticated } = useContext(AppContext)
 	return (
 		<nav className="fixed top-0 z-50 w-full border-b border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
 			<div className="px-3 py-3 lg:px-5 lg:pl-3">
@@ -33,8 +40,8 @@ function Header() {
 						</a>
 					</div>
 					<div className="flex items-center">
-						<div className="ml-3 flex items-center">
-							<div>
+						<div className="group relative ml-3 flex items-center">
+							<div className="">
 								<button
 									type="button"
 									className="flex rounded-full bg-gray-800 text-sm focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
@@ -50,7 +57,7 @@ function Header() {
 								</button>
 							</div>
 							<div
-								className="z-50 my-4 hidden list-none divide-y divide-gray-100 rounded bg-white text-base shadow dark:divide-gray-600 dark:bg-gray-700"
+								className="absolute top-4 right-0 z-50 my-4 hidden list-none divide-y divide-gray-100 rounded bg-white text-base opacity-0 shadow duration-300 group-hover:block group-hover:opacity-100 dark:divide-gray-600 dark:bg-gray-700"
 								id="dropdown-user"
 							>
 								<div className="px-4 py-3" role="none">
@@ -67,33 +74,12 @@ function Header() {
 											href="/"
 											className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
 											role="menuitem"
-										>
-											Dashboard
-										</a>
-									</li>
-									<li>
-										<a
-											href="/"
-											className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-											role="menuitem"
-										>
-											Settings
-										</a>
-									</li>
-									<li>
-										<a
-											href="/"
-											className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-											role="menuitem"
-										>
-											Earnings
-										</a>
-									</li>
-									<li>
-										<a
-											href="/"
-											className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white"
-											role="menuitem"
+											onClick={(e) => {
+												e.preventDefault()
+												clearLS()
+												setIsAuthenticated(false)
+												navigate('/')
+											}}
 										>
 											Sign out
 										</a>

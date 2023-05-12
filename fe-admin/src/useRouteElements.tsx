@@ -1,4 +1,4 @@
-import { useRoutes } from 'react-router-dom'
+import { Navigate, Outlet, useRoutes } from 'react-router-dom'
 import Home from './pages/Home'
 import MainLayout from './layouts/MainLayout'
 import Product from './pages/Product'
@@ -11,70 +11,95 @@ import FormCategory from './pages/Category/FormCategory'
 import { TableProvider } from './contexts/table.context'
 import { CategoryProvider } from './contexts/category.context'
 import Login from './pages/Login/Login'
+import { useContext } from 'react'
+import { AppContext } from './contexts/app.context'
 
+function ProtectedRoute() {
+	const { isAuthenticated } = useContext(AppContext)
+	console.log(isAuthenticated)
+	return isAuthenticated ? <Outlet /> : <Navigate to="/login" />
+}
+function RejectedRoute() {
+	const { isAuthenticated } = useContext(AppContext)
+	console.log(isAuthenticated)
+	return !isAuthenticated ? <Outlet /> : <Navigate to="/" />
+}
 function useRouteElements() {
 	const routeElements = useRoutes([
 		{
 			path: '',
-			element: (
-				<MainLayout>
-					<Home />
-				</MainLayout>
-			)
-		},
-		{
-			path: '/product',
-			element: (
-				<MainLayout>
-					<TableProvider>
-						<Product />
-					</TableProvider>
-				</MainLayout>
-			),
+			element: <ProtectedRoute />,
 			children: [
 				{
 					path: '',
 					index: true,
-					element: <ViewProduct />
+					element: (
+						<MainLayout>
+							<Home />
+						</MainLayout>
+					)
 				},
 				{
-					path: 'add',
-					element: <FormProduct />
+					path: '/product',
+					element: (
+						<MainLayout>
+							<TableProvider>
+								<Product />
+							</TableProvider>
+						</MainLayout>
+					),
+					children: [
+						{
+							path: '',
+							index: true,
+							element: <ViewProduct />
+						},
+						{
+							path: 'add',
+							element: <FormProduct />
+						}
+					]
+				},
+				{
+					path: '/category',
+					element: (
+						<MainLayout>
+							<CategoryProvider>
+								<Category />
+							</CategoryProvider>
+						</MainLayout>
+					),
+					children: [
+						{
+							path: '',
+							index: true,
+							element: <ViewCategory />
+						},
+						{
+							path: 'add',
+							element: <FormCategory />
+						}
+					]
+				},
+				{
+					path: '/user',
+					element: (
+						<MainLayout>
+							<User />
+						</MainLayout>
+					)
 				}
 			]
 		},
 		{
-			path: '/category',
-			element: (
-				<MainLayout>
-					<CategoryProvider>
-						<Category />
-					</CategoryProvider>
-				</MainLayout>
-			),
+			path: '',
+			element: <RejectedRoute />,
 			children: [
 				{
-					path: '',
-					index: true,
-					element: <ViewCategory />
-				},
-				{
-					path: 'add',
-					element: <FormCategory />
+					path: '/login',
+					element: <Login />
 				}
 			]
-		},
-		{
-			path: '/user',
-			element: (
-				<MainLayout>
-					<User />
-				</MainLayout>
-			)
-		},
-		{
-			path: '/login',
-			element: <Login />
 		}
 	])
 	return routeElements
