@@ -9,6 +9,13 @@ class Http {
 		this.accessToken = getAccessTokenToLS()
 		this.instance = axios.create({
 			baseURL: 'http://localhost:8080/api',
+			// transformRequest: (data, headers) => {
+			// 	if (Array.isArray(data)) {
+			// 		headers['Content-Type'] = 'application/json'
+			// 		return JSON.stringify(data)
+			// 	}
+			// 	return data
+			// },
 			timeout: 10000,
 			headers: {
 				'Content-Type': 'application/json'
@@ -29,7 +36,6 @@ class Http {
 		this.instance.interceptors.response.use(
 			(response) => {
 				const { url } = response.config
-				console.log(url)
 				if (url === '/v1/auth/authenticate') {
 					const data = response.data as any
 					this.accessToken = data?.token

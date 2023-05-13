@@ -5,10 +5,10 @@ import Input from '../Input'
 import Select from '../Select'
 import InputFile from '../InputFile'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { postArtwork } from 'src/apis/product/artwork.api'
+import { editArtwork, getArtwork, getDetailArtwork, postArtwork } from 'src/apis/product/artwork.api'
 import { useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getCategory } from 'src/apis/product/category.api'
 
 // type DataType = {
@@ -29,20 +29,55 @@ import { getCategory } from 'src/apis/product/category.api'
 // 	thumbnail: '',
 // 	width: ''
 // }
+type DataDetailArtwType = {
+	name: string
+	price: string
+	categoryid: string
+	width: string
+	length: string
+	thickness: string
+}
+const initDataDetailArtw: DataDetailArtwType = {
+	name: '',
+	price: '',
+	categoryid: '',
+	width: '',
+	length: '',
+	thickness: ''
+}
 const schema = yup
 	.object({
 		name: yup.string().required('Bạn cần nhập tên cho tranh!')
 	})
 	.required()
-function FormArtwork() {
+function FormArtwork({ id }: { id?: number }) {
 	const [dataCat, setDataCat] = useState([])
+	const [dataDetailArtw, setDataDetailArtw] = useState<DataDetailArtwType>(initDataDetailArtw)
+
+	const {
+		register,
+		control,
+		handleSubmit,
+		setValue,
+		formState: { errors }
+	} = useForm({
+		resolver: yupResolver(schema)
+	})
 	const queryClient = useQueryClient()
 	const queryCat = useQuery({
 		queryKey: ['category'],
 		queryFn: () => getCategory()
 	})
+	const queryPrd = id
+		? // eslint-disable-next-line react-hooks/rules-of-hooks
+		  useQuery({
+				queryKey: ['artwork', id],
+				queryFn: () => getDetailArtwork(id)
+		  })
+		: undefined
 	useEffect(() => {
 		const listCat = queryCat?.data?.data?.data?.listResult
+
 		setDataCat(
 			listCat?.map((item: any) => ({
 				value: item.id,
@@ -50,39 +85,79 @@ function FormArtwork() {
 			}))
 		)
 	}, [queryCat.isLoading])
-	console.log(dataCat)
+	useEffect(() => {
+		const data = queryPrd && queryPrd.data?.data
+		console.log(data)
+		if (data) {
+			setDataDetailArtw((prev) => ({
+				...prev,
+				name: data.name,
+				categoryid: data?.category.id,
+				length: data['length'],
+				width: data.width,
+				price: data.price,
+				thickness: data.thickness
+			}))
+		}
+	}, [queryPrd?.isLoading])
+	useEffect(() => {
+		if (dataDetailArtw) {
+			setValue('name', dataDetailArtw.name || '')
+			setValue('price', dataDetailArtw.price || '')
+			setValue('categoryid', dataDetailArtw.categoryid || '')
+			setValue('length', dataDetailArtw['length'] || '')
+			setValue('width', dataDetailArtw.width || '')
+			setValue('thickness', dataDetailArtw.thickness || '')
+		}
+	}, [dataDetailArtw])
 	const navigate = useNavigate()
 
-	const {
-		register,
-		control,
-		handleSubmit,
-		formState: { errors }
-	} = useForm({
-		resolver: yupResolver(schema)
+	const mutationPost = useMutation({
+		mutationFn: (body: any) => postArtwork(body),
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({
+				queryKey: ['artwork'],
+				exact: true
+			})
+		}
 	})
-	const mutation = useMutation({
-		mutationFn: (body: any) => postArtwork(body)
+	const mutationEdit = useMutation({
+		mutationFn: ({ body, id }: { body: any; id: number }) => editArtwork({ body, id }),
+		onSuccess: (data) => {
+			queryClient.setQueryData(['artwork', id], data)
+		}
 	})
 	const onSubmit = handleSubmit((data) => {
 		const formData = new FormData()
 		formData.append('name', data.name)
 		formData.append('price', data.price)
-		formData.append('thumbnail', data.thumbnail[0])
 		formData.append('length', data['length'])
 		formData.append('width', data.width)
 		formData.append('thickness', data.thickness)
 		formData.append('categoryid', data.categoryid)
+		formData.append('thumbnail', data.thumbnail[0])
 		for (let i = 0; i < data.album.length; i++) {
 			formData.append('album', data.album[i])
 		}
-		console.log(data)
-		mutation.mutate(formData, {
-			onSuccess: () => {
-				toast.success('Thêm mới tranh thành công!')
-				navigate('/product')
-			}
-		})
+		if (!id) {
+			mutationPost.mutate(formData, {
+				onSuccess: () => {
+					toast.success('Thêm mới tranh thành công!')
+					queryClient.invalidateQueries()
+					navigate('/product')
+				}
+			})
+		} else {
+			mutationEdit.mutate(
+				{ body: formData, id },
+				{
+					onSuccess: () => {
+						toast.success('Cập nhật tranh thành công!')
+						navigate('/product')
+					}
+				}
+			)
+		}
 	})
 	return (
 		<form onSubmit={onSubmit}>

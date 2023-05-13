@@ -12,5 +12,6 @@ public interface IArtworkService {
     int delete(long[] ids);
     List<ArtworkCatDTO> findAll(Pageable pageable);
     List<ArtworkCatDTO> findAll();
+    ArtworkCatDTO findById(Long id) throws Exception;
     int totalItem();
 }

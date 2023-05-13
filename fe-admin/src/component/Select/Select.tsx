@@ -5,13 +5,14 @@ interface SelectInfer {
 	name: string
 	control: Control<FieldValues>
 	option: { name: string; value: string }[]
+	defaultValue?: string
 }
-function Select({ className, option, name, control }: SelectInfer) {
+function Select({ className, option, name, control, defaultValue }: SelectInfer) {
 	const id = nanoid()
 	const { field } = useController({
 		control,
 		name,
-		defaultValue: ''
+		defaultValue: defaultValue || ''
 	})
 	return (
 		<div className={className}>

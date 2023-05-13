@@ -103,6 +103,18 @@ public class ArtworkService implements IArtworkService{
     public int totalItem() {
         return (int) artworkRepository.count();
     }
+
+    @Override
+    public ArtworkCatDTO findById(Long id) throws Exception {
+        ArtworkCatDTO result = new ArtworkCatDTO();
+        ArtworkEntity artworkEntity = artworkRepository.findById(id).orElse(null);
+        if(artworkEntity != null){
+            result = artworkMapper.toArtCatDTO(artworkEntity);
+        }else{
+            throw new Exception("Không tồn tại tranh");
+        }
+        return result;
+    }
 }
 
 

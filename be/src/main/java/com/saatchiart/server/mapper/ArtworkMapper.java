@@ -31,8 +31,12 @@ public class ArtworkMapper {
         newEntity.setLength(dto.getLength());
         newEntity.setWidth(dto.getWidth());
         newEntity.setQuantity(dto.getQuantity());
-        newEntity.setThumbnailUrl(dto.getThumbnailUrl());
-        newEntity.setAlbumUrls(dto.getAlbumUrls());
+        if(dto.getThumbnailUrl() != null){
+            newEntity.setThumbnailUrl(dto.getThumbnailUrl());
+        }
+        if(dto.getAlbumUrls() != null){
+            newEntity.setAlbumUrls(dto.getAlbumUrls());
+        }
         return newEntity;
     }
     public ArtworkDTO toDTO(ArtworkEntity entity){

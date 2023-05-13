@@ -51,7 +51,15 @@ public class ArtworkApi {
         ApiResponse<ListDTO<ArtworkCatDTO>> result = new ApiResponse<>("Success", HttpStatus.OK, dataApi);
 		return result;
     }
-
+    @GetMapping(value = "{id}")
+    public ArtworkCatDTO getDetailArtwork(@PathVariable("id") Long id) throws Exception{
+        try {
+            ArtworkCatDTO result = artworkService.findById(id);
+        return result;
+        } catch (Exception e) {
+            throw new Exception("Không tìm thấy tranh có id "+id);
+        }
+    }
     @PostMapping
     public ArtworkDTO createArtwork(@ModelAttribute ArtworkDTO model, @RequestParam("thumbnail") MultipartFile thumbnail,@RequestParam("album") MultipartFile[] album) throws Exception {
         UploadImage thumbnailUpload = new UploadImage(thumbnail);
@@ -66,19 +74,22 @@ public class ArtworkApi {
         return artworkService.save(model);
     }
     @PutMapping(value="{id}")
-    public ArtworkDTO updateArtwork(@ModelAttribute ArtworkDTO model, @RequestParam("thumbnail") MultipartFile thumbnail,@RequestParam("album") MultipartFile[] album,@PathVariable(value = "id") String id) throws Exception {
+    public ArtworkDTO updateArtwork(@ModelAttribute ArtworkDTO model, @RequestParam(name = "thumbnail",required = false) MultipartFile thumbnail,@RequestParam(name = "album",required = false) MultipartFile[] album,@PathVariable(value = "id") String id) throws Exception {
         try {
             Long idAw = Long.parseLong(id);
             model.setId(idAw);
-            UploadImage thumbnailUpload = new UploadImage(thumbnail);
-            model.setThumbnailUrl(thumbnailUpload.getUrl());
-            List<String> urlAlbum = new ArrayList<>();
-            for (MultipartFile item : album) {
-                UploadImage itemFile = new UploadImage(item);
-                urlAlbum.add(itemFile.getUrl());
+            if(thumbnail != null){
+                UploadImage thumbnailUpload = new UploadImage(thumbnail);
+                model.setThumbnailUrl(thumbnailUpload.getUrl());
             }
-            model.setAlbumUrls(urlAlbum);
-            model.setId(idAw);
+            if(album != null){
+                List<String> urlAlbum = new ArrayList<>();
+                for (MultipartFile item : album) {
+                    UploadImage itemFile = new UploadImage(item);
+                    urlAlbum.add(itemFile.getUrl());
+                }
+                model.setAlbumUrls(urlAlbum);
+            }
         } catch (Exception e) {
             throw new Exception("Không tồn tại tranh");
         }
@@ -86,6 +97,7 @@ public class ArtworkApi {
     }
     @DeleteMapping
     public ApiResponse<Map<String,Integer>> deleteArtwork(@RequestBody long[] ids){
+        
         Map<String,Integer> dataApi =  new HashMap<>();
         int countDeleted = artworkService.delete(ids);
         dataApi.put("countDeleted",countDeleted);

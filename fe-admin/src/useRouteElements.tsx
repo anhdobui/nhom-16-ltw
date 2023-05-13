@@ -16,12 +16,10 @@ import { AppContext } from './contexts/app.context'
 
 function ProtectedRoute() {
 	const { isAuthenticated } = useContext(AppContext)
-	console.log(isAuthenticated)
 	return isAuthenticated ? <Outlet /> : <Navigate to="/login" />
 }
 function RejectedRoute() {
 	const { isAuthenticated } = useContext(AppContext)
-	console.log(isAuthenticated)
 	return !isAuthenticated ? <Outlet /> : <Navigate to="/" />
 }
 function useRouteElements() {
@@ -56,6 +54,10 @@ function useRouteElements() {
 						},
 						{
 							path: 'add',
+							element: <FormProduct />
+						},
+						{
+							path: 'edit/:id',
 							element: <FormProduct />
 						}
 					]

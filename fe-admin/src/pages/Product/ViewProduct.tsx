@@ -10,10 +10,9 @@ function ViewProduct() {
 		dataRow: []
 	})
 	const { data, isLoading } = useQuery({
-		queryKey: ['artwork', undefined],
+		queryKey: ['artwork'],
 		queryFn: () => getArtwork()
 	})
-	console.log('data artwork', data)
 	useEffect(() => {
 		if (!isLoading) {
 			const listCat = data?.data?.data.listResult
@@ -37,8 +36,6 @@ function ViewProduct() {
 				}))
 			}
 			setDataTable(dataTable)
-		} else {
-			console.log('dang loading')
 		}
 	}, [isLoading])
 	return <TableView data={dataTable} buttonAdd="Thêm mới tranh" />
